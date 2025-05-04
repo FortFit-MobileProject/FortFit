@@ -1,0 +1,15 @@
+h1 {
+  font-family: "Press Start 2P", sans-serif;
+  font-size: 4rem;
+  color: #f25a70;
+  text-shadow: 4px 4px 0 #000;
+}
+
+#box h1 {
+  margin-bottom: 2.8rem;
+}
+
+.title-section {
+  text-align: center;
+  padding: 5rem;
+}

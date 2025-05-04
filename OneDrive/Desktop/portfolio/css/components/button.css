@@ -1,0 +1,24 @@
+#button {
+  display: inline-block;
+  background-color: #f25a70;
+  line-height: 6rem;
+  height: 6rem;
+  box-shadow: 5px 5px 0px black;
+  transition: transform 100ms linear;
+}
+#button:hover {
+  transform: scale(1.08);
+}
+#buttons-before {
+  margin: 3.8rem 9.1rem;
+  display: inline-flex;
+  flex-wrap: wrap;
+  justify-content: space-evenly;
+}
+.btn-enviar {
+  display: inline-block;
+  background-color: #f25a70;
+  font-size: 1.5rem;
+  line-height: 6rem;
+  font-weight: bold;
+}

@@ -1,0 +1,10 @@
+#box {
+  flex-wrap: wrap;
+  position: relative;
+  margin: 11.6rem 9.1rem 2rem;
+  display: inline-block;
+  background-color: #3a4042;
+  box-shadow: 10px 10px 0 #7c5e99;
+  text-align: center;
+  padding: 4.2rem 4.4rem;
+}

@@ -1,0 +1,127 @@
+<!DOCTYPE html>
+<html lang="pt-br">
+
+<head>
+    <meta charset="UTF-8">
+    <meta http-equiv="X-UA-Compatible" content="IE=edge">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Fira+Code:wght@300;500&family=Press+Start+2P&display=swap" rel="stylesheet">
+
+    <link rel="stylesheet" href="style.css">
+    <link rel="stylesheet" href="css/components/title.css">
+    <link rel="stylesheet" href="css/components/button.css">
+    <link rel="stylesheet" href="css/components/subtitle.css">
+    <link rel="stylesheet" href="css/components/box.css">
+    <link rel="stylesheet" href="css/components/box-skills.css">
+    <link rel="stylesheet" href="css/components/box-projects.css">
+    <link rel="stylesheet" href="css/components/box-sobre.css">
+    <link rel="stylesheet" href="css/components/box-contatos.css">
+    <link rel="stylesheet" href="css/components/footer.css">
+    <link rel="stylesheet" href="css/components/responsivo.css">
+
+    <title>Portfólio Bruno Oliveira</title>
+</head>
+
+<body>
+    <header>
+        <img class="bruno-avatar" src="./assets/img/bruno_avatar.png" alt="Avatar do Bruno Martins">
+        <nav>
+            <a href="#skills" lang="en">Skills</a></li>
+            <a href="#projects"> Projetos</a></li>
+            <a href="#sobre"> Sobre</a>
+            <a href="#contatos"> Contatos</a>
+            <a id="button" href=""> Download Cv</a>
+        </nav>
+    </header>
+    <div class="box-mid">
+        <div id="box">
+            <h1>Bruno Oliveira</h1>
+            <h2>FrontEnd Developer</h2>
+        </div>
+
+        <div id="buttons-before">
+            <a class="button" id="button" href=""> Download CV</a>
+            <a class="button" id="button" href="#contatos"> Contatos</a>
+        </div>
+    </div>
+
+    <section class="skills" id="skills">
+        <h2 class="title-section">Skills</h2>
+        <div class="box-skills">
+            <div class="item">
+                <img src="./assets/img/ico_html5.svg" alt="icone HTML5">
+                <span>HTML5</span>
+            </div>
+
+            <div class="item">
+                <img src="./assets/img/ico_css3.svg" alt="icone CSS3">
+                <span>CSS3</span>
+            </div>
+
+            <div class="item">
+                <img src="./assets/img/ico_js.svg" alt="icone JavaScript">
+                <span>JavaScript</span>
+            </div>
+
+            <div class="item">
+                <img src="./assets/img/ico_nodejs.svg" alt="icone Nodejs">
+                <span>NodeJS</span>
+            </div>
+
+            <div class="item"><img src="./assets/img/ico_ux.svg" alt="icone UX">
+                <span>UX</span>
+            </div>
+
+            <div class="item"><img src="./assets/img/ico_react.svg" alt="icone React JS">
+                <span>React</span>
+            </div>
+
+            <div class="item"><img src="./assets/img/ico_restapi.svg" alt="Icone Rest API">
+                <span>Rest API</span>
+            </div>
+        </div>
+    </section>
+
+    <section id="projects">
+        <h2 class="title-section">Projetos</h2>
+        <div class="container-projects">
+            <a href=""><img class="img-project" src="./assets/img/collabcode.svg" alt="Projeto-Bikcraft"></a>
+            <a href=""><img class="img-project" src="./assets/img/collabcode.svg" alt="Projeto-Bikcraft"></a>
+            <a href=""><img class="img-project" src="./assets/img/collabcode.svg" alt="Projeto-Bikcraft"></a>
+        </div>
+    </section>
+
+    <section id="sobre">
+        <h2 class="title-section">Sobre</h2>
+        <article class="sobre-descricao">
+            I'm a systems analyst and developer.I'm passionate about solving problems, learning and teaching
+            others. Always open to new challenges and ready to face changes.
+        </article>
+    </section>
+
+    <section id="contatos">
+        <h2 class="title-section">Contatos</h2>
+        <div class="box-contatos">
+            <label for="nome">Nome</label>
+            <input type="text" id="nome">
+
+            <label for="email">Email</label>
+            <input type="email" id="email">
+
+            <label for="mensagem">Mensagem</label>
+            <textarea name="mensagem" id="mensagem" cols="30" rows="10"></textarea>
+
+            <button class='btn-enviar'>Enviar</button>
+        </div>
+    </section>
+
+    <footer>
+        <span>Desenvolvido por Matheus Magalhães</span>
+    </footer>
+    <script src="script.js"></script>
+</body>
+
+</html>

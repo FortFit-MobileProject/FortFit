@@ -1,0 +1,71 @@
+/*Estilo para tablets*/
+@media only screen and (min-width: 788px) and (max-width: 979px) {
+} /* Final do estilo para tablets */
+
+/*Estilo para smartphone*/
+@media only screen and (max-width: 787px) {
+  /* H E A D E R */
+
+  /* BOX MID */
+  :root {
+    --screenSize: "small";
+    --containerSize: 550px;
+  }
+
+  #box {
+    width: 200px;
+    margin: 40px;
+  }
+  #box h1 {
+    font-size: 2.5rem;
+  }
+  #box h2 {
+    font-size: 2rem;
+  }
+  #button {
+    margin: 1rem;
+  }
+
+  /* SKILLS */
+  .item span {
+    font-size: 1rem;
+  }
+  .item img {
+    width: 3rem;
+  }
+
+  /* P R O J E T O S */
+
+  .img-project {
+    width: 20rem;
+    margin-bottom: 1rem;
+  }
+
+  /* C O N T A T O S */
+
+  .box-contatos {
+    font-size: 1.5rem;
+    line-height: 2.5rem;
+  }
+
+  /* BUTTON */
+
+  #button {
+    line-height: 3rem;
+    height: 3rem;
+    padding: 1rem;
+    box-shadow: 5px 5px 0px black;
+    transition: transform 100ms linear;
+  }
+  .btn-enviar {
+    font-size: 2rem;
+    text-align: center;
+    font-weight: bold;
+  }
+
+  img {
+    width: 100%;
+  }
+}
+
+/* Final do estilo para smartphone */
