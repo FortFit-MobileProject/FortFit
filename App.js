@@ -1,11 +1,13 @@
+import React from 'react';
 import { StatusBar } from 'expo-status-bar';
-import Login from './src/telas/login/login';
+import { NavigationContainer } from '@react-navigation/native';
+import AuthStack from './src/navigation/autenticacao';
 
 export default function App() {
-  return (
-    <>
-      <Login/>
-      <StatusBar style="light" />
-    </>
-  );
+    return (
+        <NavigationContainer>
+            <AuthStack />
+            <StatusBar style="light" />
+        </NavigationContainer>
+    );
 }
