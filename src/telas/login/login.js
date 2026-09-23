@@ -13,6 +13,7 @@ import {
 } from 'react-native';
 import { Feather } from '@expo/vector-icons';
 import { COLORS, SIZES, FONTS } from '../../constants/theme';
+import LogoFortFit from '../../../assets/images/LogoFortFit.svg';
 
 export default function LoginScreen(props) {
 
@@ -37,11 +38,7 @@ export default function LoginScreen(props) {
     }
 
     function alternarVisibilidadeSenha() {
-        if (senhaVisivel === true) {
-            setSenhaVisivel(false);
-        } else {
-            setSenhaVisivel(true);
-        }
+        setSenhaVisivel(!senhaVisivel);
     }
 
     function irParaEsqueciSenha() {
@@ -95,10 +92,7 @@ export default function LoginScreen(props) {
                 >
                     {/* ---------- LOGO ---------- */}
                     <View style={styles.logoRow}>
-                        <Image
-                            source={require('../../../assets/images/LogoPngFortFit.png')}
-                            style={styles.logoImage}
-                        />
+                        <LogoFortFit width={60} height={60}/>
                         <Text style={styles.logoText}>FORTFIT</Text>
                     </View>
 
@@ -231,7 +225,7 @@ const styles = StyleSheet.create({
     },
     logoText: {
         color: COLORS.text,
-        fontSize: SIZES.h3,
+        fontSize: SIZES.h2,
         fontWeight: '700',
         letterSpacing: 5,
         padding: 20,
