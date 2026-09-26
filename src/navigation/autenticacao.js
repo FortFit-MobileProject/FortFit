@@ -8,6 +8,9 @@ import ValidarEmailScreen from '../telas/login/reset/validarEmail';
 import ValidarCodigoScreen from '../telas/login/reset/validarCodigo';
 import ResetScreen from '../telas/login/reset/reset';
 
+import PagamentoScreen from '../telas/pagamento/pagamento';
+import ConfirmacaoPagamentoScreen from '../telas/pagamento/confirmacaoPagamento';
+
 const Stack = createNativeStackNavigator();
 
 export default function AuthStack() {
@@ -18,12 +21,45 @@ export default function AuthStack() {
                 headerShown: false,
             }}
         >
-            <Stack.Screen name="Login" component={LoginScreen} />
-            <Stack.Screen name="Cadastro" component={CadastroScreen} />
-            <Stack.Screen name="EsqueciSenha" component={ValidarEmailScreen} />
-            <Stack.Screen name="ValidarCodigo" component={ValidarCodigoScreen} />
-            <Stack.Screen name="RedefinirSenha" component={ResetScreen} />
-            <Stack.Screen name="AreaVendedor" component={AreaVendedorScreen} />
+            <Stack.Screen
+                name="Login"
+                component={LoginScreen}
+            />
+
+            <Stack.Screen
+                name="Cadastro"
+                component={CadastroScreen}
+            />
+
+            <Stack.Screen
+                name="EsqueciSenha"
+                component={ValidarEmailScreen}
+            />
+
+            <Stack.Screen
+                name="ValidarCodigo"
+                component={ValidarCodigoScreen}
+            />
+
+            <Stack.Screen
+                name="RedefinirSenha"
+                component={ResetScreen}
+            />
+
+            <Stack.Screen
+                name="AreaVendedor"
+                component={AreaVendedorScreen}
+            />
+
+            <Stack.Screen
+                name="Pagamento"
+                component={PagamentoScreen}
+            />
+
+            <Stack.Screen
+                name="PagamentoConfirmado"
+                component={ConfirmacaoPagamentoScreen}
+            />
         </Stack.Navigator>
     );
 }
