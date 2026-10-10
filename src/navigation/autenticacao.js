@@ -3,7 +3,7 @@ import { createNativeStackNavigator } from '@react-navigation/native-stack';
 
 import LoginScreen from '../telas/login/login';
 import CadastroScreen from '../telas/login/cadastro/cadastro';
-import AreaVendedorScreen from '../telas/login/areaVendedor/areaVendedor';
+import VendedorStack from './vendedor';
 import ValidarEmailScreen from '../telas/login/reset/validarEmail';
 import ValidarCodigoScreen from '../telas/login/reset/validarCodigo';
 import ResetScreen from '../telas/login/reset/reset';
@@ -23,7 +23,7 @@ export default function AuthStack() {
             <Stack.Screen name="EsqueciSenha" component={ValidarEmailScreen} />
             <Stack.Screen name="ValidarCodigo" component={ValidarCodigoScreen} />
             <Stack.Screen name="RedefinirSenha" component={ResetScreen} />
-            <Stack.Screen name="AreaVendedor" component={AreaVendedorScreen} />
+            <Stack.Screen name="AreaVendedor" component={VendedorStack} />
         </Stack.Navigator>
     );
 }
