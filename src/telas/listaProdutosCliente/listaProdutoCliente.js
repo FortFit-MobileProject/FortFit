@@ -54,7 +54,8 @@ export default function ListaProdutosClienteScreen(props) {
 
     function irParaDetalheProduto(produto) {
         if (navigation) {
-            navigation.navigate('DetalheProduto', { produtoId: produto.id });
+            // Passando o objeto 'produto' inteiro em vez de apenas o ID
+            navigation.navigate('DetalheProduto', { produto: produto });
         } else {
             console.log('Navegação ainda não configurada');
         }
