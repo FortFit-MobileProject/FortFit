@@ -21,7 +21,8 @@ const Stack = createNativeStackNavigator();
 export default function AuthStack() {
     return (
         <Stack.Navigator
-            initialRouteName="Login"
+            // MUDANÇA TEMPORÁRIA: Comece o app direto na lista de produtos
+            initialRouteName="ListaProdutos" 
             screenOptions={{
                 headerShown: false,
             }}
