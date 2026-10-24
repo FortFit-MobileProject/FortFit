@@ -11,37 +11,20 @@ import {
 } from 'react-native';
 import { Feather } from '@expo/vector-icons';
 import { COLORS, SIZES, FONTS } from '../../constants/theme';
-
-const fotoWhey = require('../../../assets/images/produtos/wheyOn.png');
-const wheyPerformace = require('../../../assets/images/produtos/wheyPerformace.webp');
-const fotoCreatina = require('../../../assets/images/produtos/creatina.webp');
-const fotoStrap = require('../../../assets/images/produtos/strap.png');
-const fotoCamiseta = require('../../../assets/images/produtos/camiseta.webp');
-const fotoProteinaChocolate = require('../../../assets/images/produtos/proteinaChocolate.webp');
-const halteres2kg = require('../../../assets/images/produtos/halteres_2kg.webp');
-
-// Dados de exemplo, só para a tela não ficar vazia enquanto não existe backend.
-// Futuramente essa lista vai vir do Firebase (coleção "produtos").
-const PRODUTOS_MOCK = [
-    { id: '1', nome: 'Whey Protein Concentrado 900g', categoria: 'Suplementos', preco: 129.9, estoque: 42, foto: wheyPerformace },
-    { id: '2', nome: 'Creatina Monohidratada 300g', categoria: 'Suplementos', preco: 79.9, estoque: 15, foto: fotoCreatina },
-    { id: '3', nome: 'Luvas de Treino Pro', categoria: 'Acessórios', preco: 49.9, estoque: 8, foto: fotoStrap },
-    { id: '4', nome: 'Camiseta Dry-Fit FortFit', categoria: 'Roupas', preco: 59.9, estoque: 0, foto: fotoCamiseta },
-    { id: '5', nome: 'Barra de Proteína Chocolate', categoria: 'Suplementos', preco: 12.9, estoque: 60, foto: fotoProteinaChocolate },
-    { id: '6', nome: 'Kit Halteres 2kg', categoria: 'Equipamentos', preco: 89.9, estoque: 5, foto: halteres2kg },
-    { id: '7', nome: 'Whey Protein Isolado 900g', categoria: 'Suplementos', preco: 149.9, estoque: 30, foto: fotoWhey },
-];
-
-
-const CATEGORIAS = ['Todos', 'Suplementos', 'Roupas', 'Acessórios', 'Equipamentos'];
+import { useLoja } from '../../context/LojaContext';
+import { CATEGORIAS } from '../../data/produtos';
 
 export default function ListaProdutosClienteScreen(props) {
 
     const navigation = props.navigation;
+    const {
+        produtos,
+        quantidadeCarrinho,
+        adicionarAoCarrinho,
+    } = useLoja();
 
     const [busca, setBusca] = useState('');
     const [categoriaFiltro, setCategoriaFiltro] = useState('Todos');
-    const [itensNoCarrinho, setItensNoCarrinho] = useState(0);
 
 
     function formatarPreco(preco) {
@@ -54,8 +37,7 @@ export default function ListaProdutosClienteScreen(props) {
 
     function irParaDetalheProduto(produto) {
         if (navigation) {
-            // Passando o objeto 'produto' inteiro em vez de apenas o ID
-            navigation.navigate('DetalheProduto', { produto: produto });
+            navigation.navigate('DetalheProduto', { produto });
         } else {
             console.log('Navegação ainda não configurada');
         }
@@ -70,16 +52,11 @@ export default function ListaProdutosClienteScreen(props) {
     }
 
     function handleAdicionarAoCarrinho(produto) {
-        console.log('Adicionado ao carrinho:', produto.nome);
-        setItensNoCarrinho(itensNoCarrinho + 1);
-
-        // Futuramente:
-        // 1. Guardar o item do carrinho num estado global (Context ou similar)
-        // 2. Persistir o carrinho para o usuário não perder ao fechar o app
+        adicionarAoCarrinho(produto);
     }
 
 
-    let produtosFiltrados = PRODUTOS_MOCK;
+    let produtosFiltrados = produtos;
     if (categoriaFiltro !== 'Todos') {
         produtosFiltrados = produtosFiltrados.filter(function (produto) {
             return produto.categoria === categoriaFiltro;
@@ -181,14 +158,19 @@ export default function ListaProdutosClienteScreen(props) {
                     <Text style={styles.headerTitle}>FORTFIT</Text>
                     <Text style={styles.headerSubtitle}>Encontre seus itens fitness</Text>
                 </View>
-                <TouchableOpacity style={styles.cartButton} onPress={irParaCarrinho}>
-                    <Feather name="shopping-cart" size={20} color={COLORS.text} />
-                    {itensNoCarrinho > 0 && (
-                        <View style={styles.cartBadge}>
-                            <Text style={styles.cartBadgeTexto}>{itensNoCarrinho}</Text>
-                        </View>
-                    )}
-                </TouchableOpacity>
+                <View style={styles.headerActions}>
+                    <TouchableOpacity style={styles.cartButton} onPress={() => navigation.navigate('Perfil')}>
+                        <Feather name="user" size={20} color={COLORS.text} />
+                    </TouchableOpacity>
+                    <TouchableOpacity style={styles.cartButton} onPress={irParaCarrinho}>
+                        <Feather name="shopping-cart" size={20} color={COLORS.text} />
+                        {quantidadeCarrinho > 0 && (
+                            <View style={styles.cartBadge}>
+                                <Text style={styles.cartBadgeTexto}>{quantidadeCarrinho}</Text>
+                            </View>
+                        )}
+                    </TouchableOpacity>
+                </View>
             </View>
 
             {/* ---------- BUSCA ---------- */}
@@ -258,6 +240,10 @@ const styles = StyleSheet.create({
         color: COLORS.textSecondary,
         fontSize: SIZES.small,
         marginTop: 4,
+    },
+    headerActions: {
+        flexDirection: 'row',
+        gap: 10,
     },
     cartButton: {
         width: 44,

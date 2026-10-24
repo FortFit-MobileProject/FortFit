@@ -1,5 +1,6 @@
 import React, { useState } from 'react';
 import {
+    Alert,
     View,
     Text,
     TextInput,
@@ -10,6 +11,7 @@ import {
     Platform,
     ScrollView,
 } from 'react-native';
+import { Feather } from '@expo/vector-icons';
 import { COLORS, SIZES, FONTS } from '../../../constants/theme';
 
 export default function ValidarEmail(props) {
@@ -19,14 +21,12 @@ export default function ValidarEmail(props) {
     const [email, setEmail] = useState('');
 
     function handleEnviarCodigo() {
-        console.log('Solicitando envio de código para:', email);
+        const emailValido = /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email.trim());
 
-        // OBSERVAÇÃO: Adicionar lógica para:
-        // 1. Validar se o campo de e-mail não está vazio e tem formato válido
-        // 2. Chamar a API do backend (ex: POST /auth/enviar-codigo) passando o e-mail
-        // 3. Se a API confirmar que o e-mail existe e o código foi enviado,
-        //    navegar para a tela de validação de código, passando o e-mail como parâmetro
-        // 4. Se der erro (e-mail não encontrado, falha no envio), mostrar mensagem ao usuário
+        if (!emailValido) {
+            Alert.alert('E-mail inválido', 'Informe um endereço de e-mail válido.');
+            return;
+        }
 
         if (navigation) {
             navigation.navigate('ValidarCodigo', { email: email });
@@ -47,6 +47,9 @@ export default function ValidarEmail(props) {
                     contentContainerStyle={styles.container}
                     keyboardShouldPersistTaps="handled"
                 >
+                    <TouchableOpacity style={styles.backButton} onPress={() => navigation.goBack()}>
+                        <Feather name="chevron-left" size={24} color={COLORS.text} />
+                    </TouchableOpacity>
                     <Text style={styles.title}>Esqueceu sua senha?</Text>
                     <Text style={styles.subtitle}>
                         Digite seu e-mail cadastrado para receber um código de verificação.
@@ -94,6 +97,15 @@ const styles = StyleSheet.create({
         paddingHorizontal: SIZES.padding,
         paddingTop: 40,
         paddingBottom: 24,
+    },
+    backButton: {
+        width: 40,
+        height: 40,
+        alignItems: 'center',
+        justifyContent: 'center',
+        marginBottom: 24,
+        borderRadius: 20,
+        backgroundColor: COLORS.surface,
     },
     title: {
         color: COLORS.text,
