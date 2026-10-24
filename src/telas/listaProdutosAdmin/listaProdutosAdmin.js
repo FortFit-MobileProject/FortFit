@@ -1,5 +1,6 @@
 import React, { useState } from 'react';
 import {
+    Alert,
     View,
     Text,
     TextInput,
@@ -11,34 +12,15 @@ import {
 } from 'react-native';
 import { Feather } from '@expo/vector-icons';
 import { COLORS, SIZES, FONTS } from '../../constants/theme';
-
-const fotoWhey = require('../../../assets/images/produtos/wheyOn.png');
-const wheyPerformace = require('../../../assets/images/produtos/wheyPerformace.webp');
-const fotoCreatina = require('../../../assets/images/produtos/creatina.webp');
-const fotoStrap = require('../../../assets/images/produtos/strap.png');
-const fotoCamiseta = require('../../../assets/images/produtos/camiseta.webp');
-const fotoProteinaChocolate = require('../../../assets/images/produtos/proteinaChocolate.webp');
-const halteres2kg = require('../../../assets/images/produtos/halteres_2kg.webp');
-
-// Dados de exemplo, só para a tela não ficar vazia enquanto não existe backend.
-// Futuramente essa lista vai vir do Firebase (coleção "produtos").
-const PRODUTOS_MOCK = [
-    { id: '1', nome: 'Whey Protein Concentrado 900g', categoria: 'Suplementos', preco: 129.9, estoque: 42, foto: wheyPerformace },
-    { id: '2', nome: 'Creatina Monohidratada 300g', categoria: 'Suplementos', preco: 79.9, estoque: 15, foto: fotoCreatina },
-    { id: '3', nome: 'Luvas de Treino Pro', categoria: 'Acessórios', preco: 49.9, estoque: 8, foto: fotoStrap },
-    { id: '4', nome: 'Camiseta Dry-Fit FortFit', categoria: 'Roupas', preco: 59.9, estoque: 0, foto: fotoCamiseta },
-    { id: '5', nome: 'Barra de Proteína Chocolate', categoria: 'Suplementos', preco: 12.9, estoque: 60, foto: fotoProteinaChocolate },
-    { id: '6', nome: 'Kit Halteres 2kg', categoria: 'Equipamentos', preco: 89.9, estoque: 5, foto: halteres2kg },
-    { id: '7', nome: 'Whey Protein Isolado 900g', categoria: 'Suplementos', preco: 149.9, estoque: 30, foto: fotoWhey },
-];
+import { useLoja } from '../../context/LojaContext';
 
 
 export default function ListaProdutosAdminScreen(props) {
 
     const navigation = props.navigation;
+    const { produtos, excluirProduto } = useLoja();
 
     const [busca, setBusca] = useState('');
-    const [produtos, setProdutos] = useState(PRODUTOS_MOCK);
 
 
     function formatarPreco(preco) {
@@ -54,19 +36,22 @@ export default function ListaProdutosAdminScreen(props) {
     }
 
     function handleEditarProduto(produto) {
-        console.log('Editar produto:', produto.nome);
-        // Futuramente: navegar para CadastroProduto passando o produto para edição
+        navigation.navigate('CadastroProduto', { produto });
     }
 
     function handleExcluirProduto(produto) {
-        console.log('Excluir produto:', produto.nome);
-
-        // Por enquanto só remove da lista local.
-        // Futuramente: excluir também no Firebase.
-        const novaLista = produtos.filter(function (item) {
-            return item.id !== produto.id;
-        });
-        setProdutos(novaLista);
+        Alert.alert(
+            'Excluir produto',
+            `Deseja excluir "${produto.nome}"?`,
+            [
+                { text: 'Cancelar', style: 'cancel' },
+                {
+                    text: 'Excluir',
+                    style: 'destructive',
+                    onPress: () => excluirProduto(produto.id),
+                },
+            ]
+        );
     }
 
 

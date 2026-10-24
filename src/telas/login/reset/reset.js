@@ -1,5 +1,6 @@
 import React, { useState } from 'react';
 import {
+    Alert,
     View,
     Text,
     TextInput,
@@ -39,23 +40,22 @@ export default function ResetPasswordScreen(props) {
     // Verifica localmente se as senhas digitadas são iguais antes de
     // sequer tentar chamar o backend — evita uma chamada de API desnecessária.
     function confirmarNovaSenha() {
-        if (senha !== confirmarSenha) {
-            console.error('As senhas não coincidem.');
+        if (senha.length < 6) {
+            Alert.alert('Senha inválida', 'A nova senha deve possuir pelo menos 6 caracteres.');
             return;
         }
 
-        console.log('Redefinindo senha para o e-mail:', emailRecebido);
-
-        // OBSERVAÇÃO: Adicionar lógica para:
-        // 1. Chamar a API do backend (ex: POST /auth/redefinir-senha)
-        //    passando o e-mail e a nova senha
-        // 2. O backend deve confirmar que o código para esse e-mail já foi
-        //    validado anteriormente, antes de efetivamente trocar a senha
-        // 3. Se der certo, navegar de volta para a tela de Login
-        // 4. Se der erro, mostrar mensagem ao usuário
+        if (senha !== confirmarSenha) {
+            Alert.alert('Senhas diferentes', 'A confirmação deve ser igual à nova senha.');
+            return;
+        }
 
         if (navigation) {
-            navigation.navigate('Login');
+            Alert.alert(
+                'Senha redefinida',
+                'Sua senha foi alterada. Entre novamente para continuar.',
+                [{ text: 'ENTRAR', onPress: () => navigation.replace('Login') }]
+            );
         } else {
             console.log('Navegação ainda não configurada');
         }
@@ -83,6 +83,9 @@ export default function ResetPasswordScreen(props) {
                     contentContainerStyle={styles.container}
                     keyboardShouldPersistTaps="handled"
                 >
+                    <TouchableOpacity style={styles.backButton} onPress={() => navigation.goBack()}>
+                        <Feather name="chevron-left" size={24} color={COLORS.text} />
+                    </TouchableOpacity>
                     <Text style={styles.title}>Criar nova senha</Text>
                     <Text style={styles.subtitle}>
                         Defina uma nova senha para sua conta.
@@ -165,6 +168,15 @@ const styles = StyleSheet.create({
         paddingHorizontal: SIZES.padding,
         paddingTop: 40,
         paddingBottom: 24,
+    },
+    backButton: {
+        width: 40,
+        height: 40,
+        alignItems: 'center',
+        justifyContent: 'center',
+        marginBottom: 24,
+        borderRadius: 20,
+        backgroundColor: COLORS.surface,
     },
     title: {
         color: COLORS.text,

@@ -6,6 +6,15 @@
     "orientation": "portrait",
     "icon": "./assets/icon.png",
     "userInterfaceStyle": "light",
+    "plugins": [
+      [
+        "expo-image-picker",
+        {
+          "photosPermission": "Permita que o FortFit acesse suas fotos para cadastrar imagens dos produtos.",
+          "microphonePermission": false
+        }
+      ]
+    ],
     "ios": {
       "supportsTablet": true
     },

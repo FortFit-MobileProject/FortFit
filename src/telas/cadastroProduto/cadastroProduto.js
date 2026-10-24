@@ -1,5 +1,7 @@
-import React, { useState } from 'react';
+import React, { useEffect, useState } from 'react';
 import {
+    Alert,
+    Image,
     View,
     Text,
     TextInput,
@@ -11,21 +13,33 @@ import {
     ScrollView,
 } from 'react-native';
 import { Feather } from '@expo/vector-icons';
+import * as ImagePicker from 'expo-image-picker';
 import { COLORS, SIZES, FONTS } from '../../constants/theme';
-
-// Lista fixa de categorias por enquanto.
-// Futuramente pode vir do Firebase (coleção "categorias").
-const CATEGORIAS = ['Suplementos', 'Roupas', 'Acessórios', 'Equipamentos'];
+import { useLoja } from '../../context/LojaContext';
+import { CATEGORIAS } from '../../data/produtos';
 
 export default function CadastroProdutoScreen(props) {
 
     const navigation = props.navigation;
+    const produtoEdicao = props.route?.params?.produto;
+    const { adicionarProduto, atualizarProduto } = useLoja();
 
     const [nome, setNome] = useState('');
     const [descricao, setDescricao] = useState('');
     const [preco, setPreco] = useState('');
     const [estoque, setEstoque] = useState('');
     const [categoriaSelecionada, setCategoriaSelecionada] = useState('');
+    const [foto, setFoto] = useState(null);
+
+    useEffect(() => {
+        if (!produtoEdicao) return;
+        setNome(produtoEdicao.nome ?? '');
+        setDescricao(produtoEdicao.descricao ?? '');
+        setPreco(String(produtoEdicao.preco ?? '').replace('.', ','));
+        setEstoque(String(produtoEdicao.estoque ?? ''));
+        setCategoriaSelecionada(produtoEdicao.categoria ?? '');
+        setFoto(produtoEdicao.foto ?? null);
+    }, [produtoEdicao]);
 
 
     function selecionarCategoria(categoria) {
@@ -33,30 +47,68 @@ export default function CadastroProdutoScreen(props) {
     }
 
     function handleCadastrarProduto() {
-        console.log('Tentativa de cadastro de produto');
-        console.log('Nome:', nome);
-        console.log('Descrição:', descricao);
-        console.log('Categoria:', categoriaSelecionada);
-        console.log('Preço:', preco);
-        console.log('Estoque:', estoque);
+        const precoNumerico = Number(preco.replace(',', '.'));
+        const estoqueNumerico = Number(estoque);
 
-        // Futuramente:
-        // 1. Validar se todos os campos obrigatórios foram preenchidos
-        // 2. Fazer upload da foto do produto (Firebase Storage)
-        // 3. Salvar o produto no Firebase (Firestore)
-        // 4. Se der certo, voltar para a listagem de produtos do admin
-        // 5. Se der erro, mostrar mensagem para o usuário
-
-        if (navigation) {
-            navigation.navigate('ListaProdutosAdmin');
-        } else {
-            console.log('Navegação ainda não configurada');
+        if (
+            nome.trim() === '' ||
+            descricao.trim() === '' ||
+            categoriaSelecionada === '' ||
+            !Number.isFinite(precoNumerico) ||
+            precoNumerico <= 0 ||
+            !Number.isInteger(estoqueNumerico) ||
+            estoqueNumerico < 0
+        ) {
+            Alert.alert('Dados inválidos', 'Preencha corretamente todos os campos obrigatórios.');
+            return;
         }
+
+        const dadosProduto = {
+            nome: nome.trim(),
+            marca: produtoEdicao?.marca ?? 'FortFit',
+            descricao: descricao.trim(),
+            categoria: categoriaSelecionada,
+            preco: precoNumerico,
+            estoque: estoqueNumerico,
+            foto,
+        };
+
+        if (produtoEdicao) {
+            atualizarProduto(produtoEdicao.id, dadosProduto);
+        } else {
+            adicionarProduto(dadosProduto);
+        }
+
+        Alert.alert(
+            produtoEdicao ? 'Produto atualizado' : 'Produto cadastrado',
+            produtoEdicao
+                ? 'As informações do produto foram atualizadas.'
+                : 'O produto foi adicionado à loja.',
+            [{ text: 'OK', onPress: () => navigation.goBack() }]
+        );
     }
 
-    function handleAdicionarFoto() {
-        console.log('Abrir seletor de foto');
-        // Futuramente: usar expo-image-picker para escolher/tirar a foto do produto
+    async function handleAdicionarFoto() {
+        const permissao = await ImagePicker.requestMediaLibraryPermissionsAsync();
+
+        if (!permissao.granted) {
+            Alert.alert(
+                'Permissão necessária',
+                'Autorize o acesso às fotos para selecionar a imagem do produto.'
+            );
+            return;
+        }
+
+        const resultado = await ImagePicker.launchImageLibraryAsync({
+            mediaTypes: ['images'],
+            allowsEditing: true,
+            aspect: [1, 1],
+            quality: 0.8,
+        });
+
+        if (!resultado.canceled && resultado.assets?.[0]?.uri) {
+            setFoto(resultado.assets[0].uri);
+        }
     }
 
     function voltar() {
@@ -82,12 +134,16 @@ export default function CadastroProdutoScreen(props) {
                         <TouchableOpacity onPress={voltar} style={styles.backButton}>
                             <Feather name="chevron-left" size={24} color={COLORS.text} />
                         </TouchableOpacity>
-                        <Text style={styles.headerTitle}>Cadastrar produto</Text>
+                        <Text style={styles.headerTitle}>
+                            {produtoEdicao ? 'Editar produto' : 'Cadastrar produto'}
+                        </Text>
                         <View style={styles.backButton} />
                     </View>
 
                     <Text style={styles.subtitle}>
-                        Preencha os dados abaixo para adicionar um novo item à loja.
+                        {produtoEdicao
+                            ? 'Atualize as informações do item selecionado.'
+                            : 'Preencha os dados abaixo para adicionar um novo item à loja.'}
                     </Text>
 
                     {/* ---------- FOTO DO PRODUTO ---------- */}
@@ -95,8 +151,23 @@ export default function CadastroProdutoScreen(props) {
                         style={styles.photoBox}
                         onPress={handleAdicionarFoto}
                     >
-                        <Feather name="camera" size={26} color={COLORS.textSecondary} />
-                        <Text style={styles.photoBoxText}>Adicionar foto do produto</Text>
+                        {foto ? (
+                            <>
+                                <Image
+                                    source={typeof foto === 'string' ? { uri: foto } : foto}
+                                    style={styles.fotoProduto}
+                                />
+                                <View style={styles.editarFoto}>
+                                    <Feather name="edit-2" size={16} color={COLORS.background} />
+                                    <Text style={styles.editarFotoTexto}>Trocar foto</Text>
+                                </View>
+                            </>
+                        ) : (
+                            <>
+                                <Feather name="camera" size={26} color={COLORS.textSecondary} />
+                                <Text style={styles.photoBoxText}>Adicionar foto do produto</Text>
+                            </>
+                        )}
                     </TouchableOpacity>
 
                     {/* ---------- NOME ---------- */}
@@ -129,7 +200,7 @@ export default function CadastroProdutoScreen(props) {
                     {/* ---------- CATEGORIA ---------- */}
                     <Text style={styles.label}>CATEGORIA</Text>
                     <View style={styles.chipsRow}>
-                        {CATEGORIAS.map(function (categoria) {
+                        {CATEGORIAS.filter((categoria) => categoria !== 'Todos').map(function (categoria) {
                             const estaSelecionada = categoria === categoriaSelecionada;
 
                             let estiloChip = styles.chip;
@@ -189,7 +260,9 @@ export default function CadastroProdutoScreen(props) {
 
                     {/* ---------- BOTÃO PRINCIPAL ---------- */}
                     <TouchableOpacity style={styles.button} onPress={handleCadastrarProduto}>
-                        <Text style={styles.buttonText}>CADASTRAR PRODUTO</Text>
+                        <Text style={styles.buttonText}>
+                            {produtoEdicao ? 'SALVAR ALTERAÇÕES' : 'CADASTRAR PRODUTO'}
+                        </Text>
                     </TouchableOpacity>
                 </ScrollView>
             </KeyboardAvoidingView>
@@ -237,10 +310,32 @@ const styles = StyleSheet.create({
         borderStyle: 'dashed',
         borderRadius: SIZES.radius,
         backgroundColor: COLORS.surface,
-        height: 120,
+        minHeight: 120,
         alignItems: 'center',
         justifyContent: 'center',
         marginBottom: 24,
+        overflow: 'hidden',
+    },
+    fotoProduto: {
+        width: '100%',
+        height: 190,
+    },
+    editarFoto: {
+        position: 'absolute',
+        right: 12,
+        bottom: 12,
+        flexDirection: 'row',
+        alignItems: 'center',
+        paddingHorizontal: 12,
+        paddingVertical: 8,
+        borderRadius: 18,
+        backgroundColor: COLORS.primary,
+    },
+    editarFotoTexto: {
+        color: COLORS.background,
+        fontSize: SIZES.small,
+        fontWeight: '700',
+        marginLeft: 7,
     },
     photoBoxText: {
         color: COLORS.textSecondary,

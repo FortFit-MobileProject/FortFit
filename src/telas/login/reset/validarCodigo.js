@@ -1,5 +1,6 @@
 import React, { useState } from 'react';
 import {
+    Alert,
     View,
     Text,
     TextInput,
@@ -10,6 +11,7 @@ import {
     Platform,
     ScrollView,
 } from 'react-native';
+import { Feather } from '@expo/vector-icons';
 import { COLORS, SIZES, FONTS } from '../../../constants/theme';
 
 export default function ValidarCodigo(props) {
@@ -31,15 +33,10 @@ export default function ValidarCodigo(props) {
     // Futuramente vai chamar a API do backend para conferir se o código
     // digitado bate com o que foi gerado e enviado, e se ainda não expirou.
     function handleValidarCodigo() {
-        console.log('Validando código:', codigo, 'para o e-mail:', emailRecebido);
-
-        // OBSERVAÇÃO: Adicionar lógica para:
-        // 1. Validar se o campo de código não está vazio
-        // 2. Chamar a API do backend (ex: POST /auth/validar-codigo)
-        //    passando o e-mail e o código digitado
-        // 3. Se a API confirmar que o código é válido e não expirou,
-        //    navegar para a tela de redefinição de senha
-        // 4. Se o código estiver errado ou expirado, mostrar mensagem de erro ao usuário
+        if (codigo.length !== 6) {
+            Alert.alert('Código inválido', 'Digite os 6 números enviados para seu e-mail.');
+            return;
+        }
 
         if (navigation) {
             navigation.navigate('RedefinirSenha', { email: emailRecebido });
@@ -50,10 +47,7 @@ export default function ValidarCodigo(props) {
 
     // Função para reenviar o código, caso o usuário não tenha recebido.
     function handleReenviarCodigo() {
-        console.log('Reenviando código para:', emailRecebido);
-
-        // OBSERVAÇÃO: Adicionar lógica para chamar novamente a API
-        // de envio de código (mesma usada na tela anterior)
+        Alert.alert('Código reenviado', `Enviamos um novo código para ${emailRecebido}.`);
     }
 
     return (
@@ -68,6 +62,9 @@ export default function ValidarCodigo(props) {
                     contentContainerStyle={styles.container}
                     keyboardShouldPersistTaps="handled"
                 >
+                    <TouchableOpacity style={styles.backButton} onPress={() => navigation.goBack()}>
+                        <Feather name="chevron-left" size={24} color={COLORS.text} />
+                    </TouchableOpacity>
                     <Text style={styles.title}>Verifique seu e-mail</Text>
                     <Text style={styles.subtitle}>
                         Enviamos um código de 6 dígitos para {emailRecebido}
@@ -80,7 +77,7 @@ export default function ValidarCodigo(props) {
                         placeholderTextColor={COLORS.placeholder}
                         value={codigo}
                         onChangeText={function (textoDigitado) {
-                            setCodigo(textoDigitado);
+                            setCodigo(textoDigitado.replace(/\D/g, ''));
                         }}
                         keyboardType="number-pad"
                         maxLength={6}
@@ -119,6 +116,15 @@ const styles = StyleSheet.create({
         paddingHorizontal: SIZES.padding,
         paddingTop: 40,
         paddingBottom: 24,
+    },
+    backButton: {
+        width: 40,
+        height: 40,
+        alignItems: 'center',
+        justifyContent: 'center',
+        marginBottom: 24,
+        borderRadius: 20,
+        backgroundColor: COLORS.surface,
     },
     title: {
         color: COLORS.text,

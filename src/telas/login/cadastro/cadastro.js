@@ -1,5 +1,6 @@
 import React, { useState } from 'react';
 import { 
+    Alert,
     View, 
     Text, 
     StyleSheet, 
@@ -18,7 +19,59 @@ export default function CadastroScreen({ navigation }) {
     const [email, setEmail] = useState('');
     const [telefone, setTelefone] = useState('');
     const [senha, setSenha] = useState('');
+    const [confirmarSenha, setConfirmarSenha] = useState('');
+    const [senhaVisivel, setSenhaVisivel] = useState(false);
     const [aceitoTermos, setAceitoTermos] = useState(false);
+
+    function alterarTelefone(texto) {
+        const numeros = texto.replace(/\D/g, '').slice(0, 11);
+        let telefoneFormatado = numeros;
+
+        if (numeros.length > 2) {
+            telefoneFormatado = `(${numeros.slice(0, 2)}) ${numeros.slice(2)}`;
+        }
+        if (numeros.length > 7) {
+            telefoneFormatado = `(${numeros.slice(0, 2)}) ${numeros.slice(2, 7)}-${numeros.slice(7)}`;
+        }
+
+        setTelefone(telefoneFormatado);
+    }
+
+    function cadastrar() {
+        const emailValido = /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email.trim());
+        const telefoneValido = telefone.replace(/\D/g, '').length >= 10;
+
+        if (nome.trim().length < 3) {
+            Alert.alert('Nome inválido', 'Informe seu nome completo.');
+            return;
+        }
+        if (!emailValido) {
+            Alert.alert('E-mail inválido', 'Informe um endereço de e-mail válido.');
+            return;
+        }
+        if (!telefoneValido) {
+            Alert.alert('Telefone inválido', 'Informe um telefone com DDD.');
+            return;
+        }
+        if (senha.length < 6) {
+            Alert.alert('Senha inválida', 'A senha deve possuir pelo menos 6 caracteres.');
+            return;
+        }
+        if (senha !== confirmarSenha) {
+            Alert.alert('Senhas diferentes', 'A confirmação deve ser igual à senha.');
+            return;
+        }
+        if (!aceitoTermos) {
+            Alert.alert('Termos de uso', 'Aceite os termos de uso para criar sua conta.');
+            return;
+        }
+
+        Alert.alert(
+            'Conta criada',
+            'Cadastro concluído. Agora você já pode entrar.',
+            [{ text: 'ENTRAR', onPress: () => navigation.replace('Login') }]
+        );
+    }
 
     return (
         <SafeAreaView style={styles.container}>
@@ -75,7 +128,7 @@ export default function CadastroScreen({ navigation }) {
                             placeholderTextColor="#7A7A7A"
                             keyboardType="phone-pad"
                             value={telefone}
-                            onChangeText={setTelefone}
+                            onChangeText={alterarTelefone}
                         />
 
                         {/* Senha */}
@@ -84,13 +137,41 @@ export default function CadastroScreen({ navigation }) {
                             style={styles.input}
                             placeholder="••••••••"
                             placeholderTextColor="#7A7A7A"
-                            secureTextEntry
+                            secureTextEntry={!senhaVisivel}
                             value={senha}
                             onChangeText={setSenha}
                         />
 
+                        <Text style={styles.label}>CONFIRMAR SENHA</Text>
+                        <TextInput
+                            style={styles.input}
+                            placeholder="••••••••"
+                            placeholderTextColor="#7A7A7A"
+                            secureTextEntry={!senhaVisivel}
+                            value={confirmarSenha}
+                            onChangeText={setConfirmarSenha}
+                        />
+
+                        <TouchableOpacity
+                            style={styles.mostrarSenha}
+                            onPress={() => setSenhaVisivel(!senhaVisivel)}
+                        >
+                            <Ionicons
+                                name={senhaVisivel ? 'eye-off-outline' : 'eye-outline'}
+                                size={18}
+                                color="#CCFF00"
+                            />
+                            <Text style={styles.mostrarSenhaTexto}>
+                                {senhaVisivel ? 'Ocultar senhas' : 'Mostrar senhas'}
+                            </Text>
+                        </TouchableOpacity>
+
                         {/* Botão Cadastrar */}
-                        <TouchableOpacity style={styles.button} activeOpacity={0.8}>
+                        <TouchableOpacity
+                            style={styles.button}
+                            activeOpacity={0.8}
+                            onPress={cadastrar}
+                        >
                             <Text style={styles.buttonText}>CADASTRAR</Text>
                         </TouchableOpacity>
 
@@ -183,6 +264,19 @@ const styles = StyleSheet.create({
         alignItems: 'center',
         marginTop: 8,
         marginBottom: 20,
+    },
+    mostrarSenha: {
+        flexDirection: 'row',
+        alignItems: 'center',
+        alignSelf: 'flex-end',
+        gap: 7,
+        marginTop: -5,
+        marginBottom: 10,
+    },
+    mostrarSenhaTexto: {
+        color: '#CCFF00',
+        fontSize: 12,
+        fontWeight: '600',
     },
     buttonText: {
         color: '#000000',

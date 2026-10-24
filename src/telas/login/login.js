@@ -1,5 +1,6 @@
 import React, { useState } from 'react';
 import {
+    Alert,
     View,
     Text,
     TextInput,
@@ -26,15 +27,12 @@ export default function LoginScreen(props) {
 
 
     function handleEntrar() {
-        console.log('Tentativa de login');
-        console.log('E-mail digitado:', email);
-        console.log('Senha digitada:', senha);
+        if (email.trim() === '' || senha.trim() === '') {
+            Alert.alert('Campos obrigatórios', 'Preencha o e-mail e a senha para entrar.');
+            return;
+        }
 
-        // Futuramente:
-        // 1. Validar se email e senha não estão vazios
-        // 2. Chamar a função de login do Firebase
-        // 3. Se der certo, navegar para a tela Home
-        // 4. Se der erro, mostrar mensagem para o usuário
+        navigation.replace('ListaProdutosCliente');
     }
 
     function alternarVisibilidadeSenha() {
