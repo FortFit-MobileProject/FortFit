@@ -38,7 +38,7 @@ test('cliente compra, reabre o app e consulta pedido persistido', async ({page})
     await page.reload();
     await page.getByRole('button',{name:'Meu perfil',exact:true}).click();
     await page.getByText('Meus pedidos',{exact:true}).click();
-    await expect(page.getByText(numero,{exact:true})).toBeVisible();
+    await expect(page.getByText(`Pedido ${numero}`, { exact: true })).toBeVisible();
     await expect(page.getByText('Creatina Monohidratada 300g × 1',{exact:true})).toBeVisible();
 });
 
