@@ -1,0 +1,33 @@
+name: FortFit CI
+on:
+  pull_request:
+  push:
+    branches: [main]
+permissions:
+  contents: read
+jobs:
+  validar:
+    runs-on: ubuntu-latest
+    timeout-minutes: 20
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '24'
+          cache: npm
+      - run: npm ci
+      - run: npm run check
+      - run: npm test
+      - run: npx expo install --check
+      - name: Gerar credenciais descartáveis para os testes locais
+        run: |
+          node -e "const fs=require('fs'),c=require('crypto');fs.appendFileSync(process.env.GITHUB_ENV,'EXPO_PUBLIC_FORTFIT_ADMIN_PASSWORD='+c.randomBytes(16).toString('hex')+'\nEXPO_PUBLIC_FORTFIT_CLIENT_PASSWORD='+c.randomBytes(16).toString('hex')+'\n')"
+      - run: npm run export:web
+      - run: npx expo export --platform android --output-dir dist-android
+      - run: npx playwright install --with-deps chromium
+      - run: npx playwright test
+      - uses: actions/upload-artifact@v4
+        if: failure()
+        with:
+          name: falha-testes-web
+          path: test-results/

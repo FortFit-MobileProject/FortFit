@@ -1,106 +1,73 @@
-import React, { createContext, useContext, useMemo, useState } from 'react';
-import { PRODUTOS_INICIAIS } from '../data/produtos';
+import React, { createContext, useCallback, useContext, useEffect, useMemo, useState } from 'react';
+import { obterRepositorio, persistirFotoProduto } from '../database/database';
 
 const LojaContext = createContext(null);
 
 export function LojaProvider({ children }) {
-    const [produtos, setProdutos] = useState(PRODUTOS_INICIAIS);
+    const [produtos, setProdutos] = useState([]);
     const [carrinho, setCarrinho] = useState([]);
+    const [pedidosLoja, setPedidosLoja] = useState([]);
+    const [usuario, setUsuario] = useState(null);
+    const [carregando, setCarregando] = useState(true);
+    const [erroInicializacao, setErroInicializacao] = useState(false);
 
-    function adicionarProduto(dados) {
-        const novoProduto = {
-            ...dados,
-            id: String(Date.now()),
-            foto: dados.foto ?? null,
+    const carregarDados = useCallback(async () => {
+        const repo = await obterRepositorio();
+        const sessao = await repo.buscarSessaoAtual();
+        const produtosBanco = await repo.listarProdutos();
+        const carrinhoBanco = sessao?.perfil === 'cliente' ? await repo.listarCarrinho() : [];
+        const pedidosBanco = sessao?.perfil === 'admin' ? await repo.listarPedidosDaLoja() : [];
+        setUsuario(sessao);
+        setProdutos(produtosBanco);
+        setCarrinho(carrinhoBanco);
+        setPedidosLoja(pedidosBanco);
+    }, []);
+
+    const prepararLoja = useCallback(async () => {
+        setCarregando(true);
+        setErroInicializacao(false);
+        try { await carregarDados(); }
+        catch { setErroInicializacao(true); }
+        finally { setCarregando(false); }
+    }, [carregarDados]);
+    useEffect(() => { prepararLoja(); }, [prepararLoja]);
+
+    // Funções estáveis evitam recarregamento contínuo do histórico de pedidos.
+    const acoes = useMemo(() => {
+        const executar = async (metodo, ...args) => (await obterRepositorio())[metodo](...args);
+        const alterar = async (metodo, ...args) => {
+            const resultado = await executar(metodo, ...args);
+            await carregarDados();
+            return resultado;
         };
-        setProdutos((listaAtual) => [novoProduto, ...listaAtual]);
-    }
+        return {
+            entrar: (email, senha) => alterar('autenticarUsuario', email, senha),
+            cadastrarUsuario: (dados) => executar('cadastrarUsuario', dados),
+            sair: () => alterar('encerrarSessao'),
+            excluirMinhaConta: () => alterar('excluirContaUsuario'),
+            iniciarRecuperacao: (email) => executar('iniciarRecuperacao', email),
+            validarCodigoRecuperacao: (id, codigo) => executar('validarCodigoRecuperacao', id, codigo),
+            redefinirSenha: (id, senha) => alterar('atualizarSenhaUsuario', id, senha),
+            adicionarProduto: async (dados) => alterar('criarProduto', { ...dados, marca: dados.marca ?? 'FortFit', foto: await persistirFotoProduto(dados.foto) }),
+            atualizarProduto: async (id, dados) => alterar('atualizarProdutoNoBanco', id, { ...dados, marca: dados.marca ?? 'FortFit', foto: await persistirFotoProduto(dados.foto) }),
+            excluirProduto: (id) => alterar('excluirProdutoDoBanco', id),
+            adicionarAoCarrinho: (produto, quantidade = 1) => alterar('adicionarItemAoCarrinho', produto, quantidade),
+            alterarQuantidade: (id, quantidade) => alterar('alterarQuantidadeNoCarrinho', id, quantidade),
+            removerDoCarrinho: (id) => alterar('removerItemDoCarrinho', id),
+            limparCarrinho: () => alterar('limparCarrinhoNoBanco'),
+            finalizarPedido: (dados) => alterar('registrarPedido', dados),
+            listarMeusPedidos: () => executar('listarPedidosDoUsuario'),
+        };
+    }, [carregarDados]);
 
-    function atualizarProduto(id, dados) {
-        setProdutos((listaAtual) =>
-            listaAtual.map((produto) =>
-                produto.id === id ? { ...produto, ...dados, id } : produto
-            )
-        );
-    }
-
-    function excluirProduto(id) {
-        setProdutos((listaAtual) => listaAtual.filter((produto) => produto.id !== id));
-        setCarrinho((listaAtual) => listaAtual.filter((item) => item.produto.id !== id));
-    }
-
-    function adicionarAoCarrinho(produto, quantidade = 1) {
-        if (!produto || produto.estoque === 0) return;
-
-        setCarrinho((listaAtual) => {
-            const itemExistente = listaAtual.find((item) => item.produto.id === produto.id);
-            if (itemExistente) {
-                return listaAtual.map((item) =>
-                    item.produto.id === produto.id
-                        ? {
-                            ...item,
-                            quantidade: Math.min(item.quantidade + quantidade, produto.estoque),
-                        }
-                        : item
-                );
-            }
-            return [...listaAtual, { produto, quantidade: Math.min(quantidade, produto.estoque) }];
-        });
-    }
-
-    function alterarQuantidade(id, quantidade) {
-        if (quantidade <= 0) {
-            removerDoCarrinho(id);
-            return;
-        }
-        setCarrinho((listaAtual) =>
-            listaAtual.map((item) =>
-                item.produto.id === id
-                    ? { ...item, quantidade: Math.min(quantidade, item.produto.estoque) }
-                    : item
-            )
-        );
-    }
-
-    function removerDoCarrinho(id) {
-        setCarrinho((listaAtual) => listaAtual.filter((item) => item.produto.id !== id));
-    }
-
-    function limparCarrinho() {
-        setCarrinho([]);
-    }
-
-    const quantidadeCarrinho = carrinho.reduce((total, item) => total + item.quantidade, 0);
-    const totalCarrinho = carrinho.reduce(
-        (total, item) => total + item.produto.preco * item.quantidade,
-        0
-    );
-
-    const valor = useMemo(
-        () => ({
-            produtos,
-            carrinho,
-            quantidadeCarrinho,
-            totalCarrinho,
-            adicionarProduto,
-            atualizarProduto,
-            excluirProduto,
-            adicionarAoCarrinho,
-            alterarQuantidade,
-            removerDoCarrinho,
-            limparCarrinho,
-        }),
-        [produtos, carrinho, quantidadeCarrinho, totalCarrinho]
-    );
-
+    const quantidadeCarrinho = carrinho.reduce((s, i) => s + i.quantidade, 0);
+    const totalCarrinho = carrinho.reduce((s, i) => s + Math.round(i.produto.preco * 100) * i.quantidade, 0) / 100;
+    const valor = useMemo(() => ({ produtos, carrinho, pedidosLoja, usuario, carregando, erroInicializacao, tentarNovamente: prepararLoja, quantidadeCarrinho, totalCarrinho, ...acoes }), [produtos, carrinho, pedidosLoja, usuario, carregando, erroInicializacao, prepararLoja, quantidadeCarrinho, totalCarrinho, acoes]);
     return <LojaContext.Provider value={valor}>{children}</LojaContext.Provider>;
 }
 
 export function useLoja() {
     const contexto = useContext(LojaContext);
-    if (!contexto) {
-        throw new Error('useLoja deve ser utilizado dentro de LojaProvider');
-    }
+    if (!contexto) throw new Error('useLoja deve ser utilizado dentro de LojaProvider');
     return contexto;
 }
-

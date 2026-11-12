@@ -1,6 +1,6 @@
+import { Alert } from '../../services/alerta';
 import React, { useState } from 'react';
 import {
-    Alert,
     View,
     Text,
     TextInput,
@@ -48,7 +48,7 @@ export default function ListaProdutosAdminScreen(props) {
                 {
                     text: 'Excluir',
                     style: 'destructive',
-                    onPress: () => excluirProduto(produto.id),
+                    onPress: async () => { try { await excluirProduto(produto.id); } catch { Alert.alert('Erro', 'Não foi possível excluir o produto.'); } },
                 },
             ]
         );

@@ -123,7 +123,7 @@ export default function ConfirmacaoPagamentoScreen(props) {
                         NÚMERO DO PEDIDO
                     </Text>
 
-                    <Text style={styles.numeroPedido}>
+                    <Text style={styles.numeroPedido} numberOfLines={1} adjustsFontSizeToFit>
                         {numeroPedido}
                     </Text>
 
