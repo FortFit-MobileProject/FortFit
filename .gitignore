@@ -39,3 +39,18 @@ yarn-error.*
 # generated native folders
 /ios
 /android
+
+# Exports e evidências gerados localmente
+dist-web/
+dist-android/
+playwright-report/
+test-results/
+
+# Configuração local das contas de demonstração
+.env
+.env.*
+!.env.example
+
+dist-*/
+core
+core.*

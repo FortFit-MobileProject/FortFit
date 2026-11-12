@@ -1,6 +1,6 @@
+import { Alert } from '../../services/alerta';
 import React from 'react';
 import {
-    Alert,
     FlatList,
     Image,
     SafeAreaView,
@@ -26,13 +26,17 @@ export default function CarrinhoScreen({ navigation }) {
         limparCarrinho,
     } = useLoja();
 
+    async function executar(acao, ...args) {
+        try { await acao(...args); } catch { Alert.alert('Carrinho não atualizado', 'Confira o estoque e tente novamente.'); }
+    }
+
     function confirmarLimpezaCarrinho() {
         Alert.alert(
             'Esvaziar carrinho',
             'Deseja remover todos os produtos do carrinho?',
             [
                 { text: 'Cancelar', style: 'cancel' },
-                { text: 'Esvaziar', style: 'destructive', onPress: limparCarrinho },
+                { text: 'Esvaziar', style: 'destructive', onPress: () => executar(limparCarrinho) },
             ]
         );
     }
@@ -74,7 +78,7 @@ export default function CarrinhoScreen({ navigation }) {
                     <View style={styles.acoes}>
                         <TouchableOpacity
                             style={styles.botaoQuantidade}
-                            onPress={() => alterarQuantidade(item.produto.id, item.quantidade - 1)}
+                            onPress={() => executar(alterarQuantidade, item.produto.id, item.quantidade - 1)}
                         >
                             <Feather name="minus" size={16} color={COLORS.text} />
                         </TouchableOpacity>
@@ -84,7 +88,7 @@ export default function CarrinhoScreen({ navigation }) {
                                 styles.botaoQuantidade,
                                 quantidadeMaxima && styles.botaoQuantidadeDesabilitado,
                             ]}
-                            onPress={() => alterarQuantidade(item.produto.id, item.quantidade + 1)}
+                            onPress={() => executar(alterarQuantidade, item.produto.id, item.quantidade + 1)}
                             disabled={quantidadeMaxima}
                         >
                             <Feather
@@ -95,7 +99,7 @@ export default function CarrinhoScreen({ navigation }) {
                         </TouchableOpacity>
                         <TouchableOpacity
                             style={styles.botaoRemover}
-                            onPress={() => removerDoCarrinho(item.produto.id)}
+                            onPress={() => executar(removerDoCarrinho, item.produto.id)}
                         >
                             <Feather name="trash-2" size={17} color={COLORS.danger} />
                         </TouchableOpacity>
