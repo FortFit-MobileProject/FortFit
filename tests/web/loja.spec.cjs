@@ -21,7 +21,7 @@ test('cliente compra, reabre o app e consulta pedido persistido', async ({page})
     await page.getByText('Creatina Monohidratada 300g',{exact:true}).click();
     await page.getByText('ADICIONAR AO CARRINHO',{exact:true}).click();
     await page.getByRole('button',{name:'Carrinho',exact:true}).click();
-    await expect(page.getByText('Creatina Monohidratada 300g',{exact:true})).toBeVisible();
+    await expect(page.getByText('Creatina Monohidratada 300g', { exact: true }).filter({ visible: true })).toBeVisible();
     await page.getByText('CONTINUAR PARA PAGAMENTO',{exact:true}).click();
     await page.getByPlaceholder('0000 0000 0000 0000').fill('4111111111111111');
     await page.getByPlaceholder('NOME COMPLETO',{exact:true}).fill('Cliente Teste');
