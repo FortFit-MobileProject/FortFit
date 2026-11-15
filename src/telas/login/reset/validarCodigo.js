@@ -1,6 +1,6 @@
+import { Alert } from '../../../services/alerta';
 import React, { useState } from 'react';
 import {
-    Alert,
     View,
     Text,
     TextInput,
@@ -11,6 +11,7 @@ import {
     Platform,
     ScrollView,
 } from 'react-native';
+import { useLoja } from '../../../context/LojaContext';
 import { Feather } from '@expo/vector-icons';
 import { COLORS, SIZES, FONTS } from '../../../constants/theme';
 
@@ -27,27 +28,31 @@ export default function ValidarCodigo(props) {
         emailRecebido = route.params.email;
     }
 
+    const { validarCodigoRecuperacao, iniciarRecuperacao } = useLoja();
+    const [recuperacaoId, setRecuperacaoId] = useState(route?.params?.recuperacaoId);
+    const [enviando, setEnviando] = useState(false);
     const [codigo, setCodigo] = useState('');
 
-    // Função chamada ao tocar no botão "Validar código".
-    // Futuramente vai chamar a API do backend para conferir se o código
-    // digitado bate com o que foi gerado e enviado, e se ainda não expirou.
-    function handleValidarCodigo() {
-        if (codigo.length !== 6) {
-            Alert.alert('Código inválido', 'Digite os 6 números enviados para seu e-mail.');
-            return;
-        }
-
-        if (navigation) {
-            navigation.navigate('RedefinirSenha', { email: emailRecebido });
-        } else {
-            console.log('Navegação ainda não configurada');
-        }
+    async function handleValidarCodigo() {
+        if (enviando) return;
+        try {
+            setEnviando(true);
+            if (!await validarCodigoRecuperacao(recuperacaoId, codigo)) {
+                Alert.alert('Código inválido', 'Confira os seis números. Após cinco tentativas ou dez minutos, gere outro código.');
+                return;
+            }
+            navigation.replace('RedefinirSenha', { recuperacaoId });
+        } catch { Alert.alert('Erro', 'Não foi possível validar o código.'); }
+        finally { setEnviando(false); }
     }
 
-    // Função para reenviar o código, caso o usuário não tenha recebido.
-    function handleReenviarCodigo() {
-        Alert.alert('Código reenviado', `Enviamos um novo código para ${emailRecebido}.`);
+    async function handleReenviarCodigo() {
+        try {
+            const nova = await iniciarRecuperacao(emailRecebido);
+            setRecuperacaoId(nova.id);
+            setCodigo('');
+            Alert.alert('Demonstração local', `Novo código de teste: ${nova.codigo}. Válido por dez minutos.`);
+        } catch { Alert.alert('Erro', 'Não foi possível gerar outro código.'); }
     }
 
     return (
@@ -67,7 +72,7 @@ export default function ValidarCodigo(props) {
                     </TouchableOpacity>
                     <Text style={styles.title}>Verifique seu e-mail</Text>
                     <Text style={styles.subtitle}>
-                        Enviamos um código de 6 dígitos para {emailRecebido}
+                        Digite o código de teste exibido no aparelho para {emailRecebido}
                     </Text>
 
                     <Text style={styles.label}>CÓDIGO</Text>
@@ -83,12 +88,12 @@ export default function ValidarCodigo(props) {
                         maxLength={6}
                     />
 
-                    <TouchableOpacity style={styles.button} onPress={handleValidarCodigo}>
+                    <TouchableOpacity style={styles.button} disabled={enviando} onPress={handleValidarCodigo}>
                         <Text style={styles.buttonText}>VALIDAR CÓDIGO</Text>
                     </TouchableOpacity>
 
                     <TouchableOpacity style={styles.resendButton} onPress={handleReenviarCodigo}>
-                        <Text style={styles.resendText}>Não recebeu? Reenviar código</Text>
+                        <Text style={styles.resendText}>Gerar outro código de teste</Text>
                     </TouchableOpacity>
                 </ScrollView>
             </KeyboardAvoidingView>

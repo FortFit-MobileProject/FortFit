@@ -1,6 +1,6 @@
+import { Alert } from '../../services/alerta';
 import React, { useEffect, useState } from 'react';
 import {
-    Alert,
     Image,
     View,
     Text,
@@ -30,6 +30,7 @@ export default function CadastroProdutoScreen(props) {
     const [estoque, setEstoque] = useState('');
     const [categoriaSelecionada, setCategoriaSelecionada] = useState('');
     const [foto, setFoto] = useState(null);
+    const [salvando, setSalvando] = useState(false);
 
     useEffect(() => {
         if (!produtoEdicao) return;
@@ -46,46 +47,24 @@ export default function CadastroProdutoScreen(props) {
         setCategoriaSelecionada(categoria);
     }
 
-    function handleCadastrarProduto() {
+    async function handleCadastrarProduto() {
         const precoNumerico = Number(preco.replace(',', '.'));
         const estoqueNumerico = Number(estoque);
-
-        if (
-            nome.trim() === '' ||
-            descricao.trim() === '' ||
-            categoriaSelecionada === '' ||
-            !Number.isFinite(precoNumerico) ||
-            precoNumerico <= 0 ||
-            !Number.isInteger(estoqueNumerico) ||
-            estoqueNumerico < 0
-        ) {
+        if (nome.trim() === '' || descricao.trim() === '' || categoriaSelecionada === '' || !Number.isFinite(precoNumerico) || precoNumerico <= 0 || !Number.isInteger(estoqueNumerico) || estoqueNumerico < 0) {
             Alert.alert('Dados inválidos', 'Preencha corretamente todos os campos obrigatórios.');
             return;
         }
-
-        const dadosProduto = {
-            nome: nome.trim(),
-            marca: produtoEdicao?.marca ?? 'FortFit',
-            descricao: descricao.trim(),
-            categoria: categoriaSelecionada,
-            preco: precoNumerico,
-            estoque: estoqueNumerico,
-            foto,
-        };
-
-        if (produtoEdicao) {
-            atualizarProduto(produtoEdicao.id, dadosProduto);
-        } else {
-            adicionarProduto(dadosProduto);
+        const dadosProduto = { nome: nome.trim(), marca: produtoEdicao?.marca ?? 'FortFit', descricao: descricao.trim(), categoria: categoriaSelecionada, preco: precoNumerico, estoque: estoqueNumerico, foto };
+        try {
+            setSalvando(true);
+            if (produtoEdicao) await atualizarProduto(produtoEdicao.id, dadosProduto);
+            else await adicionarProduto(dadosProduto);
+            Alert.alert(produtoEdicao ? 'Produto atualizado' : 'Produto cadastrado', produtoEdicao ? 'As informações do produto foram atualizadas.' : 'O produto foi salvo no catálogo.', [{ text: 'OK', onPress: () => navigation.goBack() }]);
+        } catch (erro) {
+            Alert.alert('Erro ao salvar', 'Não foi possível salvar o produto. Tente novamente.');
+        } finally {
+            setSalvando(false);
         }
-
-        Alert.alert(
-            produtoEdicao ? 'Produto atualizado' : 'Produto cadastrado',
-            produtoEdicao
-                ? 'As informações do produto foram atualizadas.'
-                : 'O produto foi adicionado à loja.',
-            [{ text: 'OK', onPress: () => navigation.goBack() }]
-        );
     }
 
     async function handleAdicionarFoto() {
@@ -100,6 +79,7 @@ export default function CadastroProdutoScreen(props) {
         }
 
         const resultado = await ImagePicker.launchImageLibraryAsync({
+            base64: Platform.OS === 'web',
             mediaTypes: ['images'],
             allowsEditing: true,
             aspect: [1, 1],
@@ -107,7 +87,8 @@ export default function CadastroProdutoScreen(props) {
         });
 
         if (!resultado.canceled && resultado.assets?.[0]?.uri) {
-            setFoto(resultado.assets[0].uri);
+            const asset = resultado.assets[0];
+            setFoto(Platform.OS === 'web' && asset.base64 ? `data:${asset.mimeType || 'image/jpeg'};base64,${asset.base64}` : asset.uri);
         }
     }
 
@@ -259,9 +240,9 @@ export default function CadastroProdutoScreen(props) {
                     </View>
 
                     {/* ---------- BOTÃO PRINCIPAL ---------- */}
-                    <TouchableOpacity style={styles.button} onPress={handleCadastrarProduto}>
+                    <TouchableOpacity style={[styles.button, salvando && styles.buttonDisabled]} disabled={salvando} onPress={handleCadastrarProduto}>
                         <Text style={styles.buttonText}>
-                            {produtoEdicao ? 'SALVAR ALTERAÇÕES' : 'CADASTRAR PRODUTO'}
+                            {salvando ? 'SALVANDO...' : produtoEdicao ? 'SALVAR ALTERAÇÕES' : 'CADASTRAR PRODUTO'}
                         </Text>
                     </TouchableOpacity>
                 </ScrollView>
@@ -412,6 +393,9 @@ const styles = StyleSheet.create({
         paddingVertical: 16,
         alignItems: 'center',
         marginTop: 8,
+    },
+    buttonDisabled: {
+        opacity: 0.6,
     },
     buttonText: {
         color: COLORS.background,

@@ -1,6 +1,6 @@
+import { Alert } from '../../services/alerta';
 import React, { useState } from 'react';
 import {
-    Alert,
     Image,
     SafeAreaView,
     ScrollView,
@@ -21,7 +21,7 @@ export default function DetalhesProdutoScreen({ navigation, route }) {
     const { produtos, adicionarAoCarrinho, quantidadeCarrinho } = useLoja();
     const produtoRecebido = route?.params?.produto;
     const produtoId = route?.params?.produtoId;
-    const produto = produtoRecebido ?? produtos.find((item) => item.id === produtoId) ?? produtos[0];
+    const produto = produtos.find((item) => item.id === (produtoId ?? produtoRecebido?.id));
     const [quantidade, setQuantidade] = useState(1);
 
     if (!produto) {
@@ -39,9 +39,11 @@ export default function DetalhesProdutoScreen({ navigation, route }) {
 
     const esgotado = produto.estoque === 0;
 
-    function adicionar() {
-        adicionarAoCarrinho(produto, quantidade);
-        Alert.alert('Produto adicionado', `${quantidade} unidade(s) adicionada(s) ao carrinho.`);
+    async function adicionar() {
+        try {
+            await adicionarAoCarrinho(produto, quantidade);
+            Alert.alert('Produto adicionado', `${quantidade} unidade(s) adicionada(s) ao carrinho.`);
+        } catch { Alert.alert('Não foi possível adicionar', 'Confira a quantidade disponível em estoque.'); }
     }
 
     return (
@@ -50,7 +52,7 @@ export default function DetalhesProdutoScreen({ navigation, route }) {
                 <TouchableOpacity style={styles.botaoIcone} onPress={() => navigation.goBack()}>
                     <Feather name="chevron-left" size={26} color={COLORS.text} />
                 </TouchableOpacity>
-                <TouchableOpacity style={styles.botaoIcone} onPress={() => navigation.navigate('Carrinho')}>
+                <TouchableOpacity style={styles.botaoIcone} accessibilityRole="button" accessibilityLabel="Carrinho" onPress={() => navigation.navigate('Carrinho')}>
                     <Feather name="shopping-cart" size={21} color={COLORS.text} />
                     {quantidadeCarrinho > 0 && (
                         <View style={styles.badgeCarrinho}>

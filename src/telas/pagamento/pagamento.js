@@ -1,6 +1,6 @@
-import React, { useState } from 'react';
+import { Alert } from '../../services/alerta';
+import React, { useRef, useState } from 'react';
 import {
-    Alert,
     Image,
     KeyboardAvoidingView,
     Platform,
@@ -12,17 +12,10 @@ import {
     TouchableOpacity,
     View,
 } from 'react-native';
+import * as Crypto from 'expo-crypto';
 import { Feather } from '@expo/vector-icons';
 import { COLORS, SIZES } from '../../constants/theme';
 import { useLoja } from '../../context/LojaContext';
-
-const PRODUTO_EXEMPLO = {
-    idProduto: 1,
-    nomeProduto: 'Creatina Monohidratada 300g',
-    precoProduto: 89.9,
-    quantidadeProduto: 1,
-    fotoProduto: null,
-};
 
 function CampoFormulario({
     rotulo,
@@ -115,29 +108,15 @@ function EtapasCheckout() {
 
 export default function PagamentoScreen(props) {
     const navigation = props.navigation;
-    const produtoRecebido = props.route?.params?.produto;
-    const { limparCarrinho } = useLoja();
-
+    const { finalizarPedido, carrinho, totalCarrinho } = useLoja();
+    const [enviando, setEnviando] = useState(false);
+    const bloqueado = useRef(false);
+    const numeroPedidoRef = useRef(null);
+    if (!numeroPedidoRef.current) numeroPedidoRef.current = `FF-${Crypto.randomUUID()}`;
     const produto = {
-        idProduto:
-            produtoRecebido?.idProduto ??
-            PRODUTO_EXEMPLO.idProduto,
-
-        nomeProduto:
-            produtoRecebido?.nomeProduto ??
-            PRODUTO_EXEMPLO.nomeProduto,
-
-        precoProduto:
-            produtoRecebido?.precoProduto ??
-            PRODUTO_EXEMPLO.precoProduto,
-
-        quantidadeProduto:
-            produtoRecebido?.quantidadeProduto ??
-            PRODUTO_EXEMPLO.quantidadeProduto,
-
-        fotoProduto:
-            produtoRecebido?.fotoProduto ??
-            PRODUTO_EXEMPLO.fotoProduto,
+        nomeProduto: carrinho.length === 1 ? carrinho[0].produto.nome : `Pedido com ${carrinho.length} produtos`,
+        quantidadeProduto: carrinho.reduce((s, i) => s + i.quantidade, 0),
+        fotoProduto: carrinho.length === 1 ? carrinho[0].produto.foto : null,
     };
 
     const [tipoCartao, setTipoCartao] = useState('credito');
@@ -154,8 +133,7 @@ export default function PagamentoScreen(props) {
     const [numeroEndereco, setNumeroEndereco] = useState('');
     const [complemento, setComplemento] = useState('');
 
-    const valorTotal =
-        produto.precoProduto * produto.quantidadeProduto;
+    const valorTotal = totalCarrinho;
 
     const fonteFoto = produto.fotoProduto
         ? typeof produto.fotoProduto === 'string'
@@ -224,21 +202,15 @@ export default function PagamentoScreen(props) {
         setMostrarEndereco(somenteNumeros.length === 8);
     }
 
-    function gerarNumeroPedido() {
-        const numeroAleatorio = Math.floor(
-            100000 + Math.random() * 900000
-        );
-
-        return `FF-${numeroAleatorio}`;
-    }
-
     function voltar() {
         if (navigation) {
             navigation.goBack();
         }
     }
 
-    function finalizarPagamento() {
+    async function finalizarPagamento() {
+        if (bloqueado.current) return;
+        if (!carrinho.length) { Alert.alert('Carrinho vazio', 'Adicione um produto antes de continuar.'); return; }
         const numerosCartao = numeroCartao.replace(
             /\D/g,
             ''
@@ -276,16 +248,37 @@ export default function PagamentoScreen(props) {
             return;
         }
 
-        const numeroPedido = gerarNumeroPedido();
-        limparCarrinho();
+        const numeroPedido = numeroPedidoRef.current;
+        bloqueado.current = true;
+        setEnviando(true);
 
-        if (navigation) {
-            navigation.navigate('PagamentoConfirmado', {
+        try {
+            const pedido = await finalizarPedido({
+                totalEsperado: valorTotal,
                 numeroPedido,
-                produto,
-                valorTotal,
+                formaPagamento: tipoCartao,
+                endereco: {
+                    cep,
+                    rua,
+                    bairro,
+                    numero: numeroEndereco,
+                    complemento,
+                },
             });
-        }
+
+            if (navigation) {
+                navigation.replace('PagamentoConfirmado', {
+                    numeroPedido,
+                    produto,
+                    valorTotal: pedido.total,
+                });
+            }
+        } catch (erro) {
+            Alert.alert(
+                'Não foi possível finalizar',
+                ['ESTOQUE_INSUFICIENTE','CARRINHO_ALTERADO'].includes(erro.message) ? 'O carrinho ou estoque mudou. Volte e revise os itens antes de continuar.' : 'Não foi possível gravar o pedido. Tente novamente.'
+            );
+        } finally { bloqueado.current = false; setEnviando(false); }
     }
 
     return (
@@ -361,7 +354,7 @@ export default function PagamentoScreen(props) {
                     </View>
 
                     <Text style={styles.tituloSecao}>
-                        Forma de pagamento
+                        Pagamento simulado — sem cobrança
                     </Text>
 
                     <View style={styles.opcoesCartao}>
@@ -576,6 +569,7 @@ export default function PagamentoScreen(props) {
                     <TouchableOpacity
                         style={styles.botaoFinalizar}
                         onPress={finalizarPagamento}
+                        disabled={enviando || !carrinho.length}
                     >
                         <Text
                             style={

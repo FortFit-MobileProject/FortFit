@@ -1,3 +1,4 @@
+import { Alert } from '../../services/alerta';
 import React, { useState } from 'react';
 import {
     View,
@@ -51,10 +52,12 @@ export default function ListaProdutosClienteScreen(props) {
         }
     }
 
-    function handleAdicionarAoCarrinho(produto) {
-        adicionarAoCarrinho(produto);
+    async function handleAdicionarAoCarrinho(produto) {
+        try {
+            await adicionarAoCarrinho(produto);
+            Alert.alert('Produto adicionado', 'O item foi salvo no seu carrinho.');
+        } catch { Alert.alert('Não foi possível adicionar', 'Confira o estoque e tente novamente.'); }
     }
-
 
     let produtosFiltrados = produtos;
     if (categoriaFiltro !== 'Todos') {
@@ -159,10 +162,10 @@ export default function ListaProdutosClienteScreen(props) {
                     <Text style={styles.headerSubtitle}>Encontre seus itens fitness</Text>
                 </View>
                 <View style={styles.headerActions}>
-                    <TouchableOpacity style={styles.cartButton} onPress={() => navigation.navigate('Perfil')}>
+                    <TouchableOpacity style={styles.cartButton} accessibilityRole="button" accessibilityLabel="Meu perfil" onPress={() => navigation.navigate('Perfil')}>
                         <Feather name="user" size={20} color={COLORS.text} />
                     </TouchableOpacity>
-                    <TouchableOpacity style={styles.cartButton} onPress={irParaCarrinho}>
+                    <TouchableOpacity style={styles.cartButton} accessibilityRole="button" accessibilityLabel="Carrinho" onPress={irParaCarrinho}>
                         <Feather name="shopping-cart" size={20} color={COLORS.text} />
                         {quantidadeCarrinho > 0 && (
                             <View style={styles.cartBadge}>
