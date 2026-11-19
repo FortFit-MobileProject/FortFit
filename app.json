@@ -13,7 +13,8 @@
           "photosPermission": "Permita que o FortFit acesse suas fotos para cadastrar imagens dos produtos.",
           "microphonePermission": false
         }
-      ]
+      ],
+      "expo-sharing"
     ],
     "ios": {
       "supportsTablet": true

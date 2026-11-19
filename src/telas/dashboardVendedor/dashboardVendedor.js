@@ -12,6 +12,7 @@ import { COLORS, SIZES } from "../../constants/theme";
 import { SafeAreaView } from "react-native-safe-area-context";
 
 import { useLoja } from '../../context/LojaContext';
+import { exportarVendas } from '../../services/exportarVendas';
 import { calcularResumoVendas } from '../../services/resumoVendas';
 
 const PERIODOS = ["Hoje", "7 dias", "30 dias"];
@@ -21,8 +22,21 @@ export default function DashboardVendedor(props) {
 
   const [periodoSelecionado, setPeriodoSelecionado] = useState("7 dias");
 
+  const [exportando, setExportando] = useState(false);
+
   const { usuario, produtos, pedidosLoja } = useLoja();
   const nomeVendedor = usuario?.nome?.split(' ')[0] ?? 'Vendedor';
+
+  async function gerarJson() {
+    setExportando(true);
+    try {
+      await exportarVendas(pedidosLoja, produtos);
+    } catch {
+      Alert.alert('Falha na exportação', 'Não foi possível gerar ou compartilhar o arquivo JSON.');
+    } finally {
+      setExportando(false);
+    }
+  }
 
   function formatarPreco(valor) {
     return valor.toLocaleString("pt-BR", {
@@ -176,6 +190,18 @@ export default function DashboardVendedor(props) {
             <Text style={styles.acaoSecundariaTexto}>Meus Produtos</Text>
           </TouchableOpacity>
         </View>
+
+        <TouchableOpacity
+          accessibilityRole="button"
+          disabled={exportando}
+          style={[styles.acaoSecundaria, styles.acaoExportar]}
+          onPress={gerarJson}
+        >
+          <Feather name="download" size={18} color={COLORS.primary} />
+          <Text style={styles.acaoSecundariaTexto}>
+            {exportando ? "Exportando…" : "Exportar vendas em JSON"}
+          </Text>
+        </TouchableOpacity>
 
         {/*---------- ESTOQUE BAIXO ----------*/}
         <Text style={styles.secaoTitulo}>ATENÇÃO: ESTOQUE BAIXO</Text>
@@ -436,6 +462,9 @@ const styles = StyleSheet.create({
     borderWidth: 1,
     borderColor: COLORS.border,
     paddingVertical: 14,
+  },
+  acaoExportar: {
+    width: "100%",
   },
   acaoSecundariaTexto: {
     color: COLORS.text,
