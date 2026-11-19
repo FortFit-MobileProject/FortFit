@@ -142,5 +142,15 @@ test('dashboard calcula valores dos pedidos reais no período, incluindo estado 
  const p={id:'p',total:59.8,criado_em:'2026-11-10T10:00:00',itens:[{produto_id:'p1',nome_produto:'Whey',quantidade:2}]};
  const r=calcularResumoVendas([p,{...p,criado_em:'2026-09-01T10:00:00'}],[produto],'Hoje',agora);
  assert.equal(r.faturamento,59.8);assert.equal(r.pedidos,1);assert.equal(r.maisVendidos[0].vendas,2);
+ assert.deepEqual(r.faturamentoPorDia, [{ dia: new Date('2026-11-10T00:00:00').getTime(), total: 59.8 }]);
+ const semana = calcularResumoVendas([
+  p,
+  { ...p, criado_em: '2026-11-09T23:30:00', total: 20 },
+  { ...p, criado_em: '2026-11-09T17:00:00', total: 0.1 },
+ ], [produto], '7 dias', agora);
+ assert.deepEqual(semana.faturamentoPorDia, [
+  { dia: new Date('2026-11-09T00:00:00').getTime(), total: 20.1 },
+  { dia: new Date('2026-11-10T00:00:00').getTime(), total: 59.8 },
+ ]);
  assert.equal(calcularResumoVendas([],[],'Hoje',agora).ticketMedio,0);
 });

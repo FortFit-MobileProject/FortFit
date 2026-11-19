@@ -91,6 +91,7 @@ export default function DashboardVendedor(props) {
 
   const dadosPeriodo = calcularResumoVendas(pedidosLoja, produtos, periodoSelecionado);
   const ticketMedio = dadosPeriodo.ticketMedio;
+  const maiorFaturamentoDiario = Math.max(1, ...dadosPeriodo.faturamentoPorDia.map(({ total }) => total));
   const maiorVenda = dadosPeriodo.maisVendidos[0]?.vendas || 1;
 
   return (
@@ -202,6 +203,28 @@ export default function DashboardVendedor(props) {
             {exportando ? "Exportando…" : "Exportar vendas em JSON"}
           </Text>
         </TouchableOpacity>
+
+        <Text style={styles.secaoTitulo}>FATURAMENTO POR DIA</Text>
+        <View style={styles.secaoCard}>
+          {!dadosPeriodo.faturamentoPorDia.length && (
+            <View style={styles.linhaUltima}>
+              <Text style={styles.linhaNome}>Nenhum pedido no período selecionado.</Text>
+            </View>
+          )}
+          {dadosPeriodo.faturamentoPorDia.map(({ dia, total }) => (
+            <View key={dia} style={styles.linhaColunaUltima}>
+              <View style={styles.rankingTopo}>
+                <Text style={styles.linhaNome}>
+                  {new Date(dia).toLocaleDateString("pt-BR", { day: "2-digit", month: "2-digit" })}
+                </Text>
+                <Text style={styles.rankingVendas}>{formatarPreco(total)}</Text>
+              </View>
+              <View style={styles.barraFundo}>
+                <View style={[styles.barraPreenchida, { width: (total / maiorFaturamentoDiario * 100) + "%" }]} />
+              </View>
+            </View>
+          ))}
+        </View>
 
         {/*---------- ESTOQUE BAIXO ----------*/}
         <Text style={styles.secaoTitulo}>ATENÇÃO: ESTOQUE BAIXO</Text>
