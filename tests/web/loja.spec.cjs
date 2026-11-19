@@ -1,3 +1,4 @@
+const { readFile } = require('node:fs/promises');
 const { test, expect } = require('@playwright/test');
 const erros = new WeakMap();
 test.beforeEach(async ({page}) => {
@@ -46,6 +47,21 @@ test('admin consulta dashboard vazio, cria produto e preserva ao reiniciar', asy
     await entrar(page,'admin@fortfit.com',process.env.EXPO_PUBLIC_FORTFIT_ADMIN_PASSWORD);
     await page.getByText('Painel de vendas',{exact:true}).click();
     await expect(page.getByText('Nenhuma venda no período.')).toBeVisible();
+    const downloadPendente = page.waitForEvent('download');
+    await page.getByRole('button', { name: 'Exportar vendas em JSON' }).click();
+    const download = await downloadPendente;
+    expect(download.suggestedFilename()).toMatch(/^fortfit-vendas-.+\.json$/);
+    const conteudo = await readFile(await download.path(), 'utf8');
+    const dados = JSON.parse(conteudo);
+    expect(dados).toMatchObject({
+        versao: 1,
+        moeda: 'BRL',
+        pedidos: [],
+        produtos: expect.arrayContaining([
+            expect.objectContaining({ nome: 'Creatina Monohidratada 300g' }),
+        ]),
+    });
+
     await page.getByText('Novo Produto',{exact:true}).click();
     // Cadastro tem campos ordenados, todos controlados pelo formulário.
     await page.getByPlaceholder('Ex: Whey Protein Concentrado 900g').fill('Produto SQLite Teste');

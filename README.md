@@ -74,3 +74,21 @@ Veja [integração e roteiro de teste](docs/INTEGRACAO_SQLITE.md).
 ## Origem da integração
 
 A implementação reaproveita o trabalho de Pedro em [pedrobertanhi/FortFit-Mobile](https://github.com/pedrobertanhi/FortFit-Mobile), referência `ec03aea`, e o dashboard da equipe no [PR #3](https://github.com/FortFit-MobileProject/FortFit/pull/3), referência `dc4fceb`. A base oficial foi preservada em `2f3b3de`. O ZIP fornecido corresponde à versão anterior sem persistência.
+
+## Exportar vendas e abrir o dashboard Python
+
+1. No app, entre como administrador e abra **Painel de vendas → Exportar vendas em JSON**.
+   No navegador, o arquivo é baixado. No celular, salve ou envie o arquivo pelo menu de compartilhamento.
+2. Na raiz do projeto, com Python 3.10 ou superior, rode:
+
+   ```sh
+   python -m pip install -r dashboard/requirements.txt
+   python -m streamlit run dashboard/app.py
+   ```
+
+3. Abra o endereço que o Streamlit exibir e carregue o JSON. O painel filtra vendas por data e mostra
+   faturamento, pedidos, ticket médio, produtos mais vendidos e estoque baixo.
+
+O arquivo contém todos os pedidos disponíveis no banco local e um retrato do estoque no momento da
+exportação. O filtro do app não limita o arquivo. O JSON não inclui nomes de clientes, endereços,
+credenciais ou dados de cartão. As datas das vendas são agrupadas em UTC.
